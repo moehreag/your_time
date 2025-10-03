@@ -8,12 +8,13 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.util.Window;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.network.packet.c2s.play.ClientStatusC2SPacket;
 import net.minecraft.stat.StatType;
 import net.minecraft.stat.Stats;
+import net.minecraft.util.math.ColorHelper;
 import net.rotgruengelb.nixienaut.util.StringUtils;
 import net.rotgruengelb.your_time.config.ModConfigModel;
+import org.joml.Matrix3x2fStack;
 
 import static net.rotgruengelb.your_time.Your_Time.CONFIG;
 
@@ -30,8 +31,8 @@ public class TimerGuiOverlay {
 
 		Window window = client.getWindow();
 		TextRenderer textRenderer = client.textRenderer;
-		MatrixStack stack = drawContext.getMatrices();
-		stack.push();
+		Matrix3x2fStack stack = drawContext.getMatrices();
+		stack.pushMatrix();
 
 		final String[] strings = requestTimerString(CONFIG.timeType().statType, CONFIG.timeType().stat);
 
@@ -58,17 +59,17 @@ public class TimerGuiOverlay {
 			}
 			yOffset += 10;
 
-			drawContext.drawText(textRenderer, string, stringX, stringY, Integer.parseInt(CONFIG.colorHex(), 16), CONFIG.textShadow());
+			drawContext.drawText(textRenderer, string, stringX, stringY, ColorHelper.fullAlpha(Integer.parseInt(CONFIG.colorHex(), 16)), CONFIG.textShadow());
 		}
 
-		stack.pop();
+		stack.popMatrix();
 	}
 
 	private static boolean shouldUseHardcoreFreezeTime(ClientPlayerEntity player) {
 		if (CONFIG.timeType().stat != Stats.TOTAL_WORLD_TIME) { return false; }
 		if (!CONFIG.freezeOnHardcoreDeath()) { return false; }
 		if (player.getStatHandler().getStat(Stats.CUSTOM, Stats.DEATHS) == 0) { return false; }
-		return player.clientWorld.getLevelProperties().isHardcore();
+		return player.getEntityWorld().getLevelProperties().isHardcore();
 	}
 
 	private static <T> String[] requestTimerString(StatType<T> statType, T stat) {
